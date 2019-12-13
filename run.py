@@ -19,7 +19,8 @@ from __future__ import division
 from __future__ import print_function
 import os
 import numpy as np
-from src.data_provider import datasets_factory
+from SeqGen import RadarGenerator
+#from src.data_provider import datasets_factory
 from src.models.model_factory import Model
 import src.trainer as trainer
 from src.utils import preprocess
