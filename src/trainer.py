@@ -128,7 +128,6 @@ def test(model, test_input_handle, configs, save_name):
         img_pd = np.minimum(img_pd, 1)
         img_pd = np.uint8(img_pd * 255)
         cv2.imwrite(file_name, img_pd)
-    test_input_handle.next()
 
   avg_mse = avg_mse / (batch_id * configs.batch_size * configs.n_gpu)
   print('mse per seq: ' + str(avg_mse))
