@@ -69,7 +69,32 @@ FLAGS.DEFINE_integer('n_gpu', 1,
                      'how many GPUs to distribute the training across.')
 FLAGS.DEFINE_boolean('allow_gpu_growth', True, 'allow gpu growth')
 
+split1 = 'train' 
+split2 = 'valid'
+DATA_DIR = '../../../data'
+dms=10
+nt=1
+fcst=2
+stn='Taif'
+seed=123
 
+train_input_handle = RadarGenerator(stn=stn,split=split1, 
+                               seed=seed,
+                               DATA_DIR=DATA_DIR,
+                               N_seq= None,
+                               nt=nt, dms=dms,
+                               batch_size=FLAGS.batch_size * FLAGS.n_gpu, 
+                               height=FLAGS.img_width, 
+                               width=FLAGS.img_width, 
+                               skip=skip, sequence_start_mode='all' ,shuffle=True)
+
+test_input_handle = RadarGenerator(stn=stn,split=split2,
+                             DATA_DIR=DATA_DIR,
+                             nt=nt, dms=dms, 
+                             batch_size=FLAGS.batch_size * FLAGS.n_gpu, 
+                             height=FLAGS.img_width, 
+                             width=FLAGS.img_width, 
+                             skip=skip, N_seq=FLAGS.total_length)
 def main(_):
   """Main function."""
   # print(FLAGS.reverse_input)
@@ -135,22 +160,16 @@ def train_wrapper(model):
   """Wrapping function to train the model."""
   if FLAGS.pretrained_model:
     model.load(FLAGS.pretrained_model)
-  # load data
-  train_input_handle, test_input_handle = datasets_factory.data_provider(
-      FLAGS.dataset_name,
-      FLAGS.train_data_paths,
-      FLAGS.valid_data_paths,
-      FLAGS.batch_size * FLAGS.n_gpu,
-      FLAGS.img_width,
-      seq_length=FLAGS.total_length,
-      is_training=True)
+  # load dat 
 
   eta = FLAGS.sampling_start_value
-
+  epok = 0
   for itr in range(1, FLAGS.max_iterations + 1):
-    if train_input_handle.no_batch_left():
-      train_input_handle.begin(do_shuffle=True)
-    ims = train_input_handle.get_batch()
+    if itr % train_input_handle.__len__() == 0:
+      train_input_handle.on_epoch_end()
+      epok+=1
+    bid = itr - epok*train_input_handle.__len__() - 1
+    ims = train_input_handle.__getitem__(bid)
     if FLAGS.dataset_name == 'penn':
       ims = ims['frame']
     ims = preprocess.reshape_patch(ims, FLAGS.patch_size)
@@ -165,18 +184,10 @@ def train_wrapper(model):
     if itr % FLAGS.test_interval == 0:
       trainer.test(model, test_input_handle, FLAGS, itr)
 
-    train_input_handle.next()
 
 
 def test_wrapper(model):
   model.load(FLAGS.pretrained_model)
-  test_input_handle = datasets_factory.data_provider(
-      FLAGS.dataset_name,
-      FLAGS.train_data_paths,
-      FLAGS.valid_data_paths,
-      FLAGS.batch_size * FLAGS.n_gpu,
-      FLAGS.img_width,
-      is_training=False)
   trainer.test(model, test_input_handle, FLAGS, 'test_result')
 
 
