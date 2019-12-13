@@ -58,13 +58,12 @@ python -u run.py \
     --dataset_name mnist \
     --train_data_paths ~/data/moving-mnist-example/moving-mnist-train.npz \
     --valid_data_paths ~/data/moving-mnist-example/moving-mnist-valid.npz \
-    --pretrained_model pretrain_model/moving_mnist_e3d_lstm/model.ckpt-80000 \
     --save_dir checkpoints/_mnist_e3d_lstm \
     --gen_frm_dir results/_mnist_e3d_lstm \
     --model_name e3d_lstm \
     --allow_gpu_growth True \
     --img_channel 1 \
-    --img_width 64 \
+    --img_width 160 \
     --input_length 10 \
     --total_length 20 \
     --filter_size 5 \
