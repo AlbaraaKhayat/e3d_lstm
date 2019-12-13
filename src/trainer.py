@@ -60,7 +60,6 @@ def train(model, ims, real_input_flag, configs, itr):
 def test(model, test_input_handle, configs, save_name):
   """Evaluates a model."""
   print(datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'), 'test...')
-  test_input_handle.begin(do_shuffle=False)
   res_path = os.path.join(configs.gen_frm_dir, str(save_name))
   os.mkdir(res_path)
   avg_mse = 0
@@ -78,9 +77,10 @@ def test(model, test_input_handle, configs, save_name):
                                    configs.img_width // configs.patch_size,
                                    configs.patch_size**2 * configs.img_channel))
 
-  while not test_input_handle.no_batch_left():
+  for i in range(90):
+
+    test_ims = test_input_handle.__getitem__(batch_id)
     batch_id = batch_id + 1
-    test_ims = test_input_handle.get_batch()
     test_dat = preprocess.reshape_patch(test_ims, configs.patch_size)
     test_dat = np.split(test_dat, configs.n_gpu)
     img_gen = model.test(test_dat, real_input_flag_zero)
